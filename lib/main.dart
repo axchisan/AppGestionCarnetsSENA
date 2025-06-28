@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sena_gestion_carnets/screens/home_screen.dart';
 import 'package:sena_gestion_carnets/screens/login_screen.dart';
+import 'package:sena_gestion_carnets/screens/registration_creen.dart';
 import 'package:sena_gestion_carnets/screens/splash_screen.dart';
 import 'utils/app_colors.dart';
 
@@ -26,7 +27,7 @@ class MainApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: const LoginScreen(),
+      home: const RegistrationScreen(),
     );
   }
 }
