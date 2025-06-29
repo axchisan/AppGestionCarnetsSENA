@@ -7,9 +7,9 @@ import 'screens/registration_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/id_card_screen.dart';
 import 'screens/device_management_screen.dart';
-import 'screens/home_navigation_screen.dart';
 import 'utils/app_colors.dart';
 import 'models/models.dart';
+import 'services/database_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,20 +38,32 @@ class SenaApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: const HomeNavigationScreen(),
+      home: const SplashScreen(), // Iniciar en SplashScreen
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/registro': (context) => const RegistrationScreen(),
-        '/inicio': (context) => const HomeScreen(),
+        '/inicio': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          if (args is Aprendiz) {
+            return HomeScreen(aprendiz: args);
+          }
+          return const HomeScreen();
+        },
         '/carnet': (context) {
           final args = ModalRoute.of(context)?.settings.arguments;
           if (args is Aprendiz) {
             return IdCardScreen(aprendiz: args);
           }
-          return IdCardScreen(aprendiz: null); // Fallback si no hay argumento
+          return IdCardScreen(aprendiz: null);
         },
-        '/dispositivos': (context) => const DeviceManagementScreen(),
+        '/dispositivos': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          if (args is Aprendiz) {
+            return DeviceManagementScreen(aprendiz: args);
+          }
+          return const DeviceManagementScreen();
+        },
       },
       debugShowCheckedModeBanner: false,
     );

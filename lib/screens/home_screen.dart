@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../utils/app_colors.dart';
@@ -5,34 +7,66 @@ import '../widgets/sena_logo.dart';
 import '../models/models.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final Aprendiz? aprendiz;
+
+  const HomeScreen({super.key, this.aprendiz});
 
   @override
   Widget build(BuildContext context) {
-    // Obtener el box de Hive
     final box = Hive.box<Aprendiz>('aprendicesBox');
-    final aprendices = box.values.toList();
-    final primerAprendiz = aprendices.isNotEmpty ? aprendices.first : null;
+    final primerAprendiz = aprendiz ?? (box.values.isNotEmpty ? box.values.first : null);
+
+    void _logout() async {
+      await box.clear(); // Limpiar sesión
+      Navigator.pushReplacementNamed(context, '/splash'); // Volver a SplashScreen
+    }
 
     return Scaffold(
       backgroundColor: AppColors.white,
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: AppColors.black),
+          onPressed: () {
+            // Aquí podrías abrir un drawer o menú con opción de cerrar sesión
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Cerrar Sesión'),
+                content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      _logout();
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Cerrar Sesión', style: TextStyle(color: AppColors.red)),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        title: const SenaLogo(
+          width: 120,
+          height: 40,
+          showShadow: false,
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  // Logo SENA
-                  const SenaLogo(
-                    width: 120,
-                    height: 40,
-                    showShadow: false,
-                  ),
                   const SizedBox(height: 24),
-
-                  // Saludo
                   Text(
                     'Bienvenido, ${primerAprendiz?.nombreCompleto ?? 'Invitado'}',
                     style: const TextStyle(
@@ -43,8 +77,6 @@ class HomeScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-
-                  // Notificación
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -75,14 +107,11 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Contenido principal
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   children: [
-                    // Tarjeta de carnet virtual
                     GestureDetector(
                       onTap: () {
                         if (primerAprendiz != null) {
@@ -146,8 +175,6 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Información del programa
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -192,8 +219,6 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-
-      // Barra de navegación inferior
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: AppColors.senaGreen,
@@ -220,10 +245,11 @@ class HomeScreen extends StatelessWidget {
                 ),
                 _buildBottomNavItem(
                   context,
-                  Icons.logout,
-                  'Salir',
-                  '/login',
-                  null, // No necesita argumento para salir
+                  Icons.close,
+                  'Cerrar',
+                  '', // Sin ruta
+                  null,
+                  onTap: () => exit(0), // Cerrar la app
                 ),
               ],
             ),
@@ -238,10 +264,12 @@ class HomeScreen extends StatelessWidget {
     IconData icon,
     String label,
     String route,
-    Aprendiz? aprendiz,
-  ) {
+    Aprendiz? aprendiz, {
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
-      onTap: () {
+      onTap: onTap ?? () {
+        if (route.isEmpty) return;
         if (route == '/login') {
           Navigator.pushReplacementNamed(context, route);
         } else if (aprendiz != null) {

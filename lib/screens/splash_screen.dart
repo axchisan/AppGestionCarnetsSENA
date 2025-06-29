@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import '../utils/app_colors.dart';
 import '../widgets/sena_logo.dart';
+import '../models/models.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,8 +22,15 @@ class _SplashScreenState extends State<SplashScreen> {
     // Simular tiempo de carga
     await Future.delayed(const Duration(seconds: 3));
     
+    final box = Hive.box<Aprendiz>('aprendicesBox');
+    final aprendiz = box.values.isNotEmpty ? box.values.first : null;
+
     if (mounted) {
-      Navigator.pushReplacementNamed(context, '/login');
+      if (aprendiz != null) {
+        Navigator.pushReplacementNamed(context, '/inicio', arguments: aprendiz);
+      } else {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     }
   }
 

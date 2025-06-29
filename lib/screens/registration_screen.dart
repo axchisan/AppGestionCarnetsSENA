@@ -1,7 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:crypto/crypto.dart'; // Para hashing
+import 'dart:convert'; // Para utf8.encode
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -114,6 +115,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     });
   }
 
+  String _hashPassword(String password) {
+    var bytes = utf8.encode(password); // Convertir a bytes
+    var digest = sha256.convert(bytes); // Usar SHA-256 (puedes cambiar a MD5 o bcrypt)
+    return digest.toString();
+  }
+
   void _handleRegistration() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -143,6 +150,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _isLoading = true;
     });
 
+    final hashedPassword = _hashPassword(_passwordController.text.trim());
     final aprendiz = Aprendiz(
       idIdentificacion: _identificationController.text.trim(),
       nombreCompleto: _nameController.text.trim(),
@@ -150,7 +158,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       numeroFicha: _fichaController.text.trim(),
       tipoSangre: _tipoSangreController.text.trim().isNotEmpty ? _tipoSangreController.text.trim() : null,
       fotoPerfilPath: _fotoPerfilPath,
-      contrasena: _passwordController.text.trim(),
+      contrasena: hashedPassword,
       email: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
       fechaRegistro: DateTime.now(),
       dispositivos: _devices.map((d) => Dispositivo(
@@ -173,7 +181,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             backgroundColor: AppColors.senaGreen,
           ),
         );
-        Navigator.pushReplacementNamed(context, '/inicio');
+        Navigator.pushReplacementNamed(context, '/inicio', arguments: aprendiz);
       }
     } catch (e) {
       if (mounted) {
@@ -226,7 +234,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ),
                 const SizedBox(height: 30),
-
                 CustomTextField(
                   label: 'Número de Identificación',
                   hint: 'Ingresa tu número de identificación',
@@ -243,7 +250,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-
                 CustomButton(
                   text: 'Validar Identificación',
                   onPressed: _validateIdentification,
@@ -251,7 +257,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   isOutlined: true,
                 ),
                 const SizedBox(height: 16),
-
                 if (_isIdValid) ...[
                   Container(
                     width: double.infinity,
@@ -283,7 +288,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                   const SizedBox(height: 20),
                 ],
-
                 AnimatedOpacity(
                   opacity: _isIdValid ? 1.0 : 0.5,
                   duration: const Duration(milliseconds: 300),
@@ -304,7 +308,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
-
                         CustomTextField(
                           label: 'Correo Electrónico',
                           hint: 'ejemplo@correo.com',
@@ -321,7 +324,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
-
                         const Text(
                           'Programa de Formación',
                           style: TextStyle(
@@ -379,7 +381,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                         ],
                         const SizedBox(height: 20),
-
                         CustomTextField(
                           label: 'Número de Ficha',
                           hint: 'Número de ficha del programa',
@@ -393,14 +394,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
-
                         CustomTextField(
                           label: 'Tipo de Sangre',
                           hint: 'Ej: A+, O-, AB+',
                           controller: _tipoSangreController,
                         ),
                         const SizedBox(height: 20),
-
                         const Text(
                           'Foto de Perfil',
                           style: TextStyle(
@@ -421,7 +420,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           Image.file(File(_fotoPerfilPath!), height: 100),
                         ],
                         const SizedBox(height: 20),
-
                         CustomTextField(
                           label: 'Contraseña',
                           hint: 'Crea una contraseña',
@@ -438,7 +436,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
-
                         CustomTextField(
                           label: 'Confirmar Contraseña',
                           hint: 'Confirma tu contraseña',
@@ -455,14 +452,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           },
                         ),
                         const SizedBox(height: 30),
-
                         Container(
                           width: double.infinity,
                           height: 1,
                           color: AppColors.gray.withOpacity(0.3),
                         ),
                         const SizedBox(height: 20),
-
                         const Text(
                           'Dispositivos Autorizados (Opcional)',
                           style: TextStyle(
@@ -472,7 +467,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-
                         Row(
                           children: [
                             Expanded(
@@ -511,7 +505,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-
                         if (_devices.isNotEmpty) ...[
                           Container(
                             constraints: const BoxConstraints(maxHeight: 200),
@@ -551,14 +544,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                           const SizedBox(height: 20),
                         ],
-
                         CustomButton(
                           text: 'Registrarse',
                           onPressed: _handleRegistration,
                           isLoading: _isLoading,
                         ),
                         const SizedBox(height: 20),
-
                         Center(
                           child: TextButton(
                             onPressed: () {

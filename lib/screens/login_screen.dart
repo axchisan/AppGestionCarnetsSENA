@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:crypto/crypto.dart'; // Para hashing
+import 'dart:convert'; // Para utf8.encode
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/sena_logo.dart';
+import '../services/database_service.dart';
+import '../models/models.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,8 +21,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _identificationController = TextEditingController();
   final _passwordController = TextEditingController();
-  
   bool _isLoading = false;
+
+  final DatabaseService _dbService = DatabaseService();
 
   @override
   void dispose() {
@@ -25,21 +32,45 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  String _hashPassword(String password) {
+    var bytes = utf8.encode(password); // Convertir a bytes
+    var digest = sha256.convert(bytes); // Usar SHA-256
+    return digest.toString();
+  }
 
-      // Simular proceso de login
-      Future.delayed(const Duration(seconds: 2), () {
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final id = _identificationController.text.trim();
+    final hashedPassword = _hashPassword(_passwordController.text.trim());
+
+    // Intentar primero con PostgreSQL para asegurar datos actualizados
+    Aprendiz? aprendiz = await _dbService.getAprendizFromPostgres(id, hashedPassword);
+
+    if (aprendiz != null) {
+      await _dbService.saveAprendiz(aprendiz); // Guardar localmente
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        
-        // Navegar a la pantalla de inicio
-        Navigator.pushReplacementNamed(context, '/inicio');
-      });
+        Navigator.pushReplacementNamed(context, '/inicio', arguments: aprendiz);
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Credenciales incorrectas'),
+            backgroundColor: AppColors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -51,8 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.logout, color: AppColors.black),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.close, color: AppColors.black),
+          onPressed: () => exit(0), // Cerrar la app
         ),
       ),
       body: SafeArea(
@@ -62,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
             key: _formKey,
             child: Column(
               children: [
-                // Logo SENA
                 const SizedBox(height: 20),
                 const SenaLogo(
                   width: 150,
@@ -70,8 +100,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   showShadow: false,
                 ),
                 const SizedBox(height: 40),
-
-                // Título
                 const Text(
                   'Iniciar Sesión',
                   style: TextStyle(
@@ -81,8 +109,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-
-                // Campo número de identificación
                 CustomTextField(
                   label: 'Número de Identificación',
                   hint: 'Ingresa tu número de identificación',
@@ -99,8 +125,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-
-                // Campo contraseña
                 CustomTextField(
                   label: 'Contraseña',
                   hint: 'Ingresa tu contraseña',
@@ -114,8 +138,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 30),
-
-                // Botón de login
                 CustomButton(
                   text: 'Iniciar Sesión',
                   onPressed: _handleLogin,
@@ -123,8 +145,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   icon: Icons.arrow_forward,
                 ),
                 const SizedBox(height: 20),
-
-                // Enlace olvidé mi contraseña
                 TextButton(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -142,8 +162,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Botón de registro
                 CustomButton(
                   text: 'Crear Nueva Cuenta',
                   onPressed: () {
@@ -152,8 +170,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   isOutlined: true,
                 ),
                 const SizedBox(height: 40),
-
-                // Información adicional
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(

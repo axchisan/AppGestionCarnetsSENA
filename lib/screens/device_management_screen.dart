@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/sena_logo.dart';
+import '../services/database_service.dart';
+import '../models/models.dart';
 
 class DeviceManagementScreen extends StatefulWidget {
-  const DeviceManagementScreen({super.key});
+  final Aprendiz? aprendiz;
+
+  const DeviceManagementScreen({super.key, this.aprendiz});
 
   @override
   State<DeviceManagementScreen> createState() => _DeviceManagementScreenState();
@@ -14,27 +18,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
   final _deviceIdController = TextEditingController();
   final _deviceNameController = TextEditingController();
   
-  final List<Map<String, dynamic>> _devices = [
-    {
-      'name': 'PC - Escritorio',
-      'id': 'PC123456',
-      'icon': Icons.computer,
-      'type': 'Computador',
-    },
-    {
-      'name': 'Tablet - Samsung',
-      'id': 'TAB456789',
-      'icon': Icons.tablet,
-      'type': 'Tablet',
-    },
-    {
-      'name': 'Móvil - iPhone',
-      'id': 'MOB789012',
-      'icon': Icons.smartphone,
-      'type': 'Teléfono',
-    },
-  ];
-
+  final List<Map<String, dynamic>> _devices = [];
   String _selectedType = 'Computador';
   final List<String> _deviceTypes = [
     'Computador',
@@ -48,6 +32,31 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
     'Otro',
   ];
 
+  final DatabaseService _dbService = DatabaseService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDevices();
+  }
+
+  Future<void> _loadDevices() async {
+    if (widget.aprendiz != null) {
+      final aprendiz = await _dbService.getAprendizFromLocal(widget.aprendiz!.idIdentificacion);
+      if (aprendiz != null) {
+        setState(() {
+          _devices.clear();
+          _devices.addAll(aprendiz.dispositivos.map((d) => {
+            'name': d.nombreDispositivo,
+            'id': d.idDispositivo.toString(),
+            'icon': _getIconForType(_deviceTypes.contains(d.nombreDispositivo) ? d.nombreDispositivo : 'Otro'),
+            'type': _deviceTypes.contains(d.nombreDispositivo) ? d.nombreDispositivo : 'Otro',
+          }));
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _deviceIdController.dispose();
@@ -55,25 +64,44 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
     super.dispose();
   }
 
-  void _addDevice() {
+  void _addDevice() async {
     if (_deviceIdController.text.isNotEmpty && _deviceNameController.text.isNotEmpty) {
-      setState(() {
-        _devices.add({
-          'name': _deviceNameController.text,
-          'id': _deviceIdController.text,
-          'icon': _getIconForType(_selectedType),
-          'type': _selectedType,
-        });
-        _deviceIdController.clear();
-        _deviceNameController.clear();
-      });
+      final deviceId = int.tryParse(_deviceIdController.text.trim());
+      if (deviceId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('El ID del dispositivo debe ser un número válido'),
+            backgroundColor: AppColors.red,
+          ),
+        );
+        return;
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dispositivo agregado exitosamente'),
-          backgroundColor: AppColors.senaGreen,
-        ),
-      );
+      if (_devices.any((d) => d['id'] == _deviceIdController.text.trim())) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('El ID del dispositivo ya está registrado'),
+            backgroundColor: AppColors.red,
+          ),
+        );
+        return;
+      }
+
+      if (widget.aprendiz != null) {
+        await _dbService.addDevice(widget.aprendiz!.idIdentificacion, _deviceNameController.text.trim());
+        await _loadDevices(); // Recargar dispositivos después de añadir
+        setState(() {
+          _deviceIdController.clear();
+          _deviceNameController.clear();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Dispositivo agregado exitosamente'),
+            backgroundColor: AppColors.senaGreen,
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -84,40 +112,58 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
     }
   }
 
-  void _removeDevice(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Eliminar Dispositivo'),
-          content: Text('¿Estás seguro de que quieres eliminar "${_devices[index]['name']}"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _devices.removeAt(index);
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Dispositivo eliminado'),
-                    backgroundColor: AppColors.red,
-                  ),
-                );
-              },
-              child: const Text(
-                'Eliminar',
-                style: TextStyle(color: AppColors.red),
+  void _removeDevice(int index) async {
+    if (widget.aprendiz != null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Eliminar Dispositivo'),
+            content: Text('¿Estás seguro de que quieres eliminar "${_devices[index]['name']}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancelar'),
               ),
-            ),
-          ],
-        );
-      },
-    );
+              TextButton(
+                onPressed: () async {
+                  final deviceId = int.parse(_devices[index]['id']);
+                  final aprendiz = await _dbService.getAprendizFromLocal(widget.aprendiz!.idIdentificacion);
+                  if (aprendiz != null) {
+                    final updatedDispositivos = aprendiz.dispositivos.where((d) => d.idDispositivo != deviceId).toList();
+                    final updatedAprendiz = Aprendiz(
+                      idIdentificacion: aprendiz.idIdentificacion,
+                      nombreCompleto: aprendiz.nombreCompleto,
+                      programaFormacion: aprendiz.programaFormacion,
+                      numeroFicha: aprendiz.numeroFicha,
+                      tipoSangre: aprendiz.tipoSangre,
+                      fotoPerfilPath: aprendiz.fotoPerfilPath,
+                      contrasena: aprendiz.contrasena,
+                      email: aprendiz.email,
+                      fechaRegistro: aprendiz.fechaRegistro,
+                      dispositivos: updatedDispositivos,
+                    );
+                    await _dbService.saveAprendiz(updatedAprendiz);
+                    await _loadDevices(); // Recargar dispositivos después de eliminar
+                  }
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Dispositivo eliminado'),
+                      backgroundColor: AppColors.red,
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Eliminar',
+                  style: TextStyle(color: AppColors.red),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   IconData _getIconForType(String type) {
@@ -295,6 +341,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                     ),
                   ),
                 ),
+                keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
 
