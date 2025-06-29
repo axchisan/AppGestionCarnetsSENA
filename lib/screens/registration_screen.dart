@@ -1,0 +1,541 @@
+import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
+import '../widgets/custom_button.dart';
+import '../widgets/custom_text_field.dart';
+import '../widgets/sena_logo.dart';
+
+class RegistrationScreen extends StatefulWidget {
+  const RegistrationScreen({super.key});
+
+  @override
+  State<RegistrationScreen> createState() => _RegistrationScreenState();
+}
+
+class _RegistrationScreenState extends State<RegistrationScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _identificationController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _fichaController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _deviceController = TextEditingController();
+  
+  String? _selectedProgram;
+  bool _isLoading = false;
+  bool _isValidatingId = false;
+  bool _isIdValid = false;
+  List<String> _devices = [];
+
+  final List<String> _programs = [
+    'ADSI - Análisis y Desarrollo de Sistemas',
+    'Multimedia - Producción Multimedia',
+    'Contabilidad - Contabilidad y Finanzas',
+    'Mercadeo - Mercadeo y Ventas',
+    'Gestión - Gestión Administrativa',
+    'Redes - Mantenimiento de Equipos de Cómputo',
+    'Diseño - Diseño Gráfico',
+    'Cocina - Cocina Internacional',
+  ];
+
+  @override
+  void dispose() {
+    _identificationController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _fichaController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _deviceController.dispose();
+    super.dispose();
+  }
+
+  void _validateIdentification() {
+    if (_identificationController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ingresa un número de identificación'),
+          backgroundColor: AppColors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isValidatingId = true;
+    });
+
+    // Simular validación
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _isValidatingId = false;
+          _isIdValid = true;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Número de identificación válido'),
+            backgroundColor: AppColors.senaGreen,
+          ),
+        );
+      }
+    });
+  }
+
+  void _addDevice() {
+    if (_deviceController.text.trim().isNotEmpty) {
+      setState(() {
+        _devices.add(_deviceController.text.trim());
+        _deviceController.clear();
+      });
+    }
+  }
+
+  void _removeDevice(int index) {
+    setState(() {
+      _devices.removeAt(index);
+    });
+  }
+
+  void _handleRegistration() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (!_isIdValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Primero valida tu número de identificación'),
+          backgroundColor: AppColors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Simular proceso de registro
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registro exitoso'),
+            backgroundColor: AppColors.senaGreen,
+          ),
+        );
+        
+        Navigator.pushReplacementNamed(context, '/inicio');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const SenaLogo(
+          width: 120,
+          height: 40,
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Título
+                const Center(
+                  child: Text(
+                    'Registro de Aprendiz',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // Campo número de identificación
+                CustomTextField(
+                  label: 'Número de Identificación',
+                  hint: 'Ingresa tu número de identificación',
+                  controller: _identificationController,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu número de identificación';
+                    }
+                    if (value.length < 8) {
+                      return 'El número debe tener al menos 8 dígitos';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Botón de validación
+                CustomButton(
+                  text: 'Validar Identificación',
+                  onPressed: _validateIdentification,
+                  isLoading: _isValidatingId,
+                  isOutlined: true,
+                ),
+                const SizedBox(height: 16),
+
+                // Indicador de validación
+                if (_isIdValid) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.senaGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.senaGreen.withOpacity(0.3)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.senaGreen,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Número de identificación válido',
+                            style: TextStyle(
+                              color: AppColors.senaGreen,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Resto del formulario
+                AnimatedOpacity(
+                  opacity: _isIdValid ? 1.0 : 0.5,
+                  duration: const Duration(milliseconds: 300),
+                  child: AbsorbPointer(
+                    absorbing: !_isIdValid,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomTextField(
+                          label: 'Nombre Completo',
+                          hint: 'Ingresa tu nombre completo',
+                          controller: _nameController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa tu nombre completo';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        CustomTextField(
+                          label: 'Correo Electrónico',
+                          hint: 'ejemplo@correo.com',
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa tu correo electrónico';
+                            }
+                            if (!value.contains('@')) {
+                              return 'Ingresa un correo válido';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Dropdown para programa - CORREGIDO
+                        const Text(
+                          'Programa de Formación',
+                          style: TextStyle(
+                            color: AppColors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.senaGreen,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedProgram,
+                              hint: const Text('Selecciona tu programa'),
+                              isExpanded: true,
+                              items: _programs.map((String program) {
+                                return DropdownMenuItem<String>(
+                                  value: program,
+                                  child: Container(
+                                    constraints: const BoxConstraints(maxWidth: 250),
+                                    child: Text(
+                                      program,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedProgram = newValue;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        if (_selectedProgram == null) ...[
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Por favor selecciona un programa',
+                            style: TextStyle(
+                              color: AppColors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 20),
+
+                        CustomTextField(
+                          label: 'Número de Ficha',
+                          hint: 'Número de ficha del programa',
+                          controller: _fichaController,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa el número de ficha';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Botón subir foto
+                        const Text(
+                          'Foto de Perfil (Opcional)',
+                          style: TextStyle(
+                            color: AppColors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomButton(
+                          text: 'Subir Foto',
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Funcionalidad de cámara próximamente'),
+                              ),
+                            );
+                          },
+                          isOutlined: true,
+                          icon: Icons.camera_alt,
+                        ),
+                        const SizedBox(height: 20),
+
+                        CustomTextField(
+                          label: 'Contraseña',
+                          hint: 'Crea una contraseña',
+                          isPassword: true,
+                          controller: _passwordController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa una contraseña';
+                            }
+                            if (value.length < 6) {
+                              return 'La contraseña debe tener al menos 6 caracteres';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        CustomTextField(
+                          label: 'Confirmar Contraseña',
+                          hint: 'Confirma tu contraseña',
+                          isPassword: true,
+                          controller: _confirmPasswordController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor confirma tu contraseña';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Las contraseñas no coinciden';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 30),
+
+                        // Sección de dispositivos
+                        Container(
+                          width: double.infinity,
+                          height: 1,
+                          color: AppColors.gray.withOpacity(0.3),
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        const Text(
+                          'Dispositivos Autorizados (Opcional)',
+                          style: TextStyle(
+                            color: AppColors.black,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Campo para agregar dispositivo
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _deviceController,
+                                decoration: InputDecoration(
+                                  hintText: 'ID del dispositivo (ej: PC001)',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.senaGreen,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.senaGreen,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.senaGreen,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                onPressed: _addDevice,
+                                icon: const Icon(Icons.add, color: AppColors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Lista de dispositivos
+                        if (_devices.isNotEmpty) ...[
+                          Container(
+                            constraints: const BoxConstraints(maxHeight: 200),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: _devices.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.lightGray,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.devices, color: AppColors.senaGreen),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _devices[index],
+                                          style: const TextStyle(
+                                            color: AppColors.black,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () => _removeDevice(index),
+                                        icon: const Icon(Icons.delete, color: AppColors.red),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+
+                        // Botón de registro
+                        CustomButton(
+                          text: 'Registrarse',
+                          onPressed: _handleRegistration,
+                          isLoading: _isLoading,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Enlace a login
+                        Center(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/login');
+                            },
+                            child: const Text(
+                              '¿Ya tienes cuenta? Inicia sesión',
+                              style: TextStyle(
+                                color: AppColors.senaGreen,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40), // Espacio extra al final
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

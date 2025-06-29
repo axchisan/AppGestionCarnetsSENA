@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sena_gestion_carnets/widgets/sena_logo.dart';
 import '../utils/app_colors.dart';
+import '../widgets/sena_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,6 +11,21 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
+  void initState() {
+    super.initState();
+    _navigateToHome();
+  }
+
+  Future<void> _navigateToHome() async {
+    // Simular tiempo de carga
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.senaGreen,
@@ -18,35 +33,55 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Logo SENA grande con fondo blanco
             Container(
-              width: 200,
-              height: 200,
+              width: 250,
+              height: 250,
+              padding: const EdgeInsets.all(40),
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: const SenaLogo(
                 width: 170,
                 height: 170,
-                showShadow: false,
               ),
             ),
             const SizedBox(height: 40),
-
+            
+            // Título
+            const Text(
+              'Carnets Virtuales',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            // Subtítulo
             const Text(
               'Sistema de Identificación Digital',
               style: TextStyle(
                 fontSize: 16,
-                color: Color.fromRGBO(255, 255, 255, 0.9),
+                color: AppColors.white,
               ),
-            )
+            ),
+            const SizedBox(height: 50),
+            
+            // Indicador de carga
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+              strokeWidth: 3,
+            ),
           ],
         ),
       ),

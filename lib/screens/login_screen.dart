@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
-import '../widgets/custom_textfield.dart';
+import '../widgets/custom_text_field.dart';
 import '../widgets/sena_logo.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,10 +15,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _identificationController = TextEditingController();
   final _passwordController = TextEditingController();
-  //final _authService = AuthService();
-
+  
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void dispose() {
@@ -27,13 +25,22 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  void _handleLogin() {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+      // Simular proceso de login
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        // Navegar a la pantalla de inicio
+        Navigator.pushReplacementNamed(context, '/inicio');
+      });
+    }
   }
 
   @override
@@ -44,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.black),
+          icon: const Icon(Icons.logout, color: AppColors.black),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -57,7 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Logo SENA
                 const SizedBox(height: 20),
-                const SenaLogo(width: 150, height: 50, showShadow: false),
+                const SenaLogo(
+                  width: 150,
+                  height: 50,
+                  showShadow: false,
+                ),
                 const SizedBox(height: 40),
 
                 // Título
@@ -102,29 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
-
-                // Mensaje de error
-                if (_errorMessage != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.red.withOpacity(0.3)),
-                    ),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(
-                        color: AppColors.red,
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                const SizedBox(height: 30),
 
                 // Botón de login
                 CustomButton(
@@ -140,9 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text(
-                          'Contacta con la administración para recuperar tu contraseña',
-                        ),
+                        content: Text('Contacta con la administración para recuperar tu contraseña'),
                       ),
                     );
                   },
@@ -160,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 CustomButton(
                   text: 'Crear Nueva Cuenta',
                   onPressed: () {
-                    Navigator.pushNamed(context, '/register');
+                    Navigator.pushNamed(context, '/registro');
                   },
                   isOutlined: true,
                 ),
@@ -176,11 +163,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: const Column(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.blue, size: 24),
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.blue,
+                        size: 24,
+                      ),
                       SizedBox(height: 8),
                       Text(
                         'Solo aprendices registrados en el centro SENA pueden crear una cuenta.',
-                        style: TextStyle(color: Colors.blue, fontSize: 14),
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontSize: 14,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],

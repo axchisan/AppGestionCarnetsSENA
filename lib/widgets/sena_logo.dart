@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class SenaLogo extends StatelessWidget {
   final double width;
@@ -20,11 +21,12 @@ class SenaLogo extends StatelessWidget {
       height: height,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
+        // Fallback en caso de que no se pueda cargar la imagen
         return Container(
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: const Color(0xFF00A651),
+            color: AppColors.senaGreen,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
@@ -41,7 +43,7 @@ class SenaLogo extends StatelessWidget {
       },
     );
 
-    if(showShadow) {
+    if (showShadow) {
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -56,6 +58,7 @@ class SenaLogo extends StatelessWidget {
         child: logoImage,
       );
     }
+
     return logoImage;
   }
 }

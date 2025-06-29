@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:sena_gestion_carnets/utils/app_colors.dart';
-import 'package:sena_gestion_carnets/widgets/sena_logo.dart';
+import '../utils/app_colors.dart';
+import '../widgets/sena_logo.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,16 +12,23 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // Header
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  const SenaLogo(width: 150, height: 70, showShadow: false),
+                  // Logo SENA
+                  const SenaLogo(
+                    width: 120,
+                    height: 40,
+                    showShadow: false,
+                  ),
                   const SizedBox(height: 24),
 
-                  Text(
-                    'Bienvenida Laura Camila Sandoval',
-                    style: const TextStyle(
+                  // Saludo
+                  const Text(
+                    'Bienvenido, Juan Carlos',
+                    style: TextStyle(
                       fontSize: 20,
                       color: AppColors.black,
                       fontWeight: FontWeight.w500,
@@ -34,6 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
+
+                  // Notificación
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -51,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Recuerda actualizar tu foto de perfil',
+                            'Tu carnet virtual está listo para usar',
                             style: TextStyle(
                               color: AppColors.black,
                               fontSize: 14,
@@ -65,11 +69,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
+            // Contenido principal
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   children: [
+                    // Tarjeta de carnet virtual
                     GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(context, '/carnet');
@@ -79,10 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [
-                              AppColors.senaGreen,
-                              AppColors.senaGreenDark,
-                            ],
+                            colors: [AppColors.senaGreen, AppColors.senaGreenDark],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -115,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     style: TextStyle(
                                       color: AppColors.white,
                                       fontSize: 14,
+                                      
                                     ),
                                   ),
                                 ],
@@ -131,6 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 24),
 
+                    // Información del programa
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -138,28 +143,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: AppColors.lightGray,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Column(
+                      child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Programa Actual',
                             style: TextStyle(
                               color: AppColors.black,
                               fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
                           Text(
-                            'Análisis y Desarrollo de software',
+                            'Análisis y Desarrollo de Sistemas de Información',
                             style: TextStyle(
                               color: AppColors.gray,
                               fontSize: 14,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
-                            'Ficha: 2931558',
+                            'Ficha: 2758936',
                             style: TextStyle(
                               color: AppColors.gray,
                               fontSize: 12,
@@ -176,19 +181,74 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
+      // Barra de navegación inferior
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(color: AppColors.senaGreen),
+        decoration: const BoxDecoration(
+          color: AppColors.senaGreen,
+        ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                
+                _buildBottomNavItem(
+                  context,
+                  Icons.credit_card,
+                  'Carnet',
+                  '/carnet',
+                ),
+                _buildBottomNavItem(
+                  context,
+                  Icons.devices,
+                  'Dispositivos',
+                  '/dispositivos',
+                ),
+                _buildBottomNavItem(
+                  context,
+                  Icons.logout,
+                  'Salir',
+                  '/login',
+                ),
               ],
             ),
-          )
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String route,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        if (route == '/login') {
+          Navigator.pushReplacementNamed(context, route);
+        } else {
+          Navigator.pushNamed(context, route);
+        }
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: AppColors.white,
+            size: 24,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
     );
   }

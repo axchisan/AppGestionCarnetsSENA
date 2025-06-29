@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:sena_gestion_carnets/screens/home_screen.dart';
-import 'package:sena_gestion_carnets/screens/login_screen.dart';
-import 'package:sena_gestion_carnets/screens/registration_creen.dart';
-import 'package:sena_gestion_carnets/screens/splash_screen.dart';
+import 'screens/splash_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/registration_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/id_card_screen.dart';
+import 'screens/device_management_screen.dart';
+import 'screens/home_navigation_screen.dart';
 import 'utils/app_colors.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const SenaApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class SenaApp extends StatelessWidget {
+  const SenaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SENA Carnets virtuales',
+      title: 'SENA Carnets Virtuales',
       theme: ThemeData(
         primarySwatch: Colors.green,
         primaryColor: AppColors.senaGreen,
@@ -27,7 +30,16 @@ class MainApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: const RegistrationScreen(),
+      home: const HomeNavigationScreen(),
+      routes: {
+        '/splash': (context) => const SplashScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/registro': (context) => const RegistrationScreen(),
+        '/inicio': (context) => const HomeScreen(),
+        '/carnet': (context) => const IdCardScreen(),
+        '/dispositivos': (context) => const DeviceManagementScreen(),
+      },
+      debugShowCheckedModeBanner: false,
     );
   }
 }
