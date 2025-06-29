@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import '../utils/app_colors.dart';
 import '../widgets/sena_logo.dart';
+import '../models/models.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Obtener el box de Hive
+    final box = Hive.box<Aprendiz>('aprendicesBox');
+    final aprendices = box.values.toList();
+    final primerAprendiz = aprendices.isNotEmpty ? aprendices.first : null;
+
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
@@ -26,9 +33,9 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Saludo
-                  const Text(
-                    'Bienvenido, Juan Carlos',
-                    style: TextStyle(
+                  Text(
+                    'Bienvenido, ${primerAprendiz?.nombreCompleto ?? 'Invitado'}',
+                    style: const TextStyle(
                       fontSize: 20,
                       color: AppColors.black,
                       fontWeight: FontWeight.w500,
@@ -78,7 +85,13 @@ class HomeScreen extends StatelessWidget {
                     // Tarjeta de carnet virtual
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/carnet');
+                        if (primerAprendiz != null) {
+                          Navigator.pushNamed(context, '/carnet', arguments: primerAprendiz);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('No hay aprendices registrados')),
+                          );
+                        }
                       },
                       child: Container(
                         width: double.infinity,
@@ -118,7 +131,6 @@ class HomeScreen extends StatelessWidget {
                                     style: TextStyle(
                                       color: AppColors.white,
                                       fontSize: 14,
-                                      
                                     ),
                                   ),
                                 ],
@@ -143,10 +155,10 @@ class HomeScreen extends StatelessWidget {
                         color: AppColors.lightGray,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Programa Actual',
                             style: TextStyle(
                               color: AppColors.black,
@@ -154,18 +166,18 @@ class HomeScreen extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            'Análisis y Desarrollo de Sistemas de Información',
-                            style: TextStyle(
+                            primerAprendiz?.programaFormacion ?? 'No disponible',
+                            style: const TextStyle(
                               color: AppColors.gray,
                               fontSize: 14,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
-                            'Ficha: 2758936',
-                            style: TextStyle(
+                            'Ficha: ${primerAprendiz?.numeroFicha ?? 'N/A'}',
+                            style: const TextStyle(
                               color: AppColors.gray,
                               fontSize: 12,
                             ),
@@ -197,18 +209,21 @@ class HomeScreen extends StatelessWidget {
                   Icons.credit_card,
                   'Carnet',
                   '/carnet',
+                  primerAprendiz,
                 ),
                 _buildBottomNavItem(
                   context,
                   Icons.devices,
                   'Dispositivos',
                   '/dispositivos',
+                  primerAprendiz,
                 ),
                 _buildBottomNavItem(
                   context,
                   Icons.logout,
                   'Salir',
                   '/login',
+                  null, // No necesita argumento para salir
                 ),
               ],
             ),
@@ -223,13 +238,18 @@ class HomeScreen extends StatelessWidget {
     IconData icon,
     String label,
     String route,
+    Aprendiz? aprendiz,
   ) {
     return GestureDetector(
       onTap: () {
         if (route == '/login') {
           Navigator.pushReplacementNamed(context, route);
+        } else if (aprendiz != null) {
+          Navigator.pushNamed(context, route, arguments: aprendiz);
         } else {
-          Navigator.pushNamed(context, route);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No hay aprendices registrados')),
+          );
         }
       },
       child: Column(

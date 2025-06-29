@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/sena_logo.dart';
+import '../services/database_service.dart';
+import '../models/models.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -20,12 +25,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _deviceController = TextEditingController();
-  
+  final _tipoSangreController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
   String? _selectedProgram;
   bool _isLoading = false;
   bool _isValidatingId = false;
   bool _isIdValid = false;
   List<String> _devices = [];
+  String? _fotoPerfilPath;
 
   final List<String> _programs = [
     'ADSI - Análisis y Desarrollo de Sistemas',
@@ -38,6 +45,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     'Cocina - Cocina Internacional',
   ];
 
+  final DatabaseService _dbService = DatabaseService();
+
   @override
   void dispose() {
     _identificationController.dispose();
@@ -47,10 +56,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _deviceController.dispose();
+    _tipoSangreController.dispose();
     super.dispose();
   }
 
-  void _validateIdentification() {
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _fotoPerfilPath = image.path;
+      });
+    }
+  }
+
+  void _validateIdentification() async {
     if (_identificationController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -65,22 +84,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _isValidatingId = true;
     });
 
-    // Simular validación
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isValidatingId = false;
-          _isIdValid = true;
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Número de identificación válido'),
-            backgroundColor: AppColors.senaGreen,
-          ),
-        );
-      }
-    });
+    final isValid = await _dbService.validateIdentification(_identificationController.text.trim());
+    if (mounted) {
+      setState(() {
+        _isValidatingId = false;
+        _isIdValid = isValid;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isValid ? 'Número de identificación válido' : 'Número no registrado en el SENA'),
+          backgroundColor: isValid ? AppColors.senaGreen : AppColors.red,
+        ),
+      );
+    }
   }
 
   void _addDevice() {
@@ -98,7 +114,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     });
   }
 
-  void _handleRegistration() {
+  void _handleRegistration() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -113,27 +129,65 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       return;
     }
 
+    if (_selectedProgram == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecciona un programa de formación'),
+          backgroundColor: AppColors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    // Simular proceso de registro
-    Future.delayed(const Duration(seconds: 3), () {
+    final aprendiz = Aprendiz(
+      idIdentificacion: _identificationController.text.trim(),
+      nombreCompleto: _nameController.text.trim(),
+      programaFormacion: _selectedProgram!,
+      numeroFicha: _fichaController.text.trim(),
+      tipoSangre: _tipoSangreController.text.trim().isNotEmpty ? _tipoSangreController.text.trim() : null,
+      fotoPerfilPath: _fotoPerfilPath,
+      contrasena: _passwordController.text.trim(),
+      email: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
+      fechaRegistro: DateTime.now(),
+      dispositivos: _devices.map((d) => Dispositivo(
+        idDispositivo: DateTime.now().millisecondsSinceEpoch + _devices.indexOf(d),
+        idIdentificacion: _identificationController.text.trim(),
+        nombreDispositivo: d,
+        fechaRegistro: DateTime.now(),
+      )).toList(),
+    );
+
+    try {
+      await _dbService.saveAprendiz(aprendiz);
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Registro exitoso'),
             backgroundColor: AppColors.senaGreen,
           ),
         );
-        
         Navigator.pushReplacementNamed(context, '/inicio');
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al registrar: $e'),
+            backgroundColor: AppColors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -161,7 +215,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Título
                 const Center(
                   child: Text(
                     'Registro de Aprendiz',
@@ -174,7 +227,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // Campo número de identificación
                 CustomTextField(
                   label: 'Número de Identificación',
                   hint: 'Ingresa tu número de identificación',
@@ -192,7 +244,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Botón de validación
                 CustomButton(
                   text: 'Validar Identificación',
                   onPressed: _validateIdentification,
@@ -201,7 +252,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Indicador de validación
                 if (_isIdValid) ...[
                   Container(
                     width: double.infinity,
@@ -234,7 +284,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   const SizedBox(height: 20),
                 ],
 
-                // Resto del formulario
                 AnimatedOpacity(
                   opacity: _isIdValid ? 1.0 : 0.5,
                   duration: const Duration(milliseconds: 300),
@@ -273,7 +322,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Dropdown para programa - CORREGIDO
                         const Text(
                           'Programa de Formación',
                           style: TextStyle(
@@ -346,9 +394,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Botón subir foto
+                        CustomTextField(
+                          label: 'Tipo de Sangre',
+                          hint: 'Ej: A+, O-, AB+',
+                          controller: _tipoSangreController,
+                        ),
+                        const SizedBox(height: 20),
+
                         const Text(
-                          'Foto de Perfil (Opcional)',
+                          'Foto de Perfil',
                           style: TextStyle(
                             color: AppColors.black,
                             fontSize: 16,
@@ -358,16 +412,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         const SizedBox(height: 8),
                         CustomButton(
                           text: 'Subir Foto',
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Funcionalidad de cámara próximamente'),
-                              ),
-                            );
-                          },
+                          onPressed: _pickImage,
                           isOutlined: true,
                           icon: Icons.camera_alt,
                         ),
+                        if (_fotoPerfilPath != null) ...[
+                          const SizedBox(height: 8),
+                          Image.file(File(_fotoPerfilPath!), height: 100),
+                        ],
                         const SizedBox(height: 20),
 
                         CustomTextField(
@@ -404,14 +456,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                         const SizedBox(height: 30),
 
-                        // Sección de dispositivos
                         Container(
                           width: double.infinity,
                           height: 1,
                           color: AppColors.gray.withOpacity(0.3),
                         ),
                         const SizedBox(height: 20),
-                        
+
                         const Text(
                           'Dispositivos Autorizados (Opcional)',
                           style: TextStyle(
@@ -422,7 +473,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Campo para agregar dispositivo
                         Row(
                           children: [
                             Expanded(
@@ -462,7 +512,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Lista de dispositivos
                         if (_devices.isNotEmpty) ...[
                           Container(
                             constraints: const BoxConstraints(maxHeight: 200),
@@ -503,7 +552,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           const SizedBox(height: 20),
                         ],
 
-                        // Botón de registro
                         CustomButton(
                           text: 'Registrarse',
                           onPressed: _handleRegistration,
@@ -511,7 +559,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Enlace a login
                         Center(
                           child: TextButton(
                             onPressed: () {
@@ -526,7 +573,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 40), // Espacio extra al final
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),

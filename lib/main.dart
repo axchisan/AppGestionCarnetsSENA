@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/registration_screen.dart';
@@ -7,8 +9,14 @@ import 'screens/id_card_screen.dart';
 import 'screens/device_management_screen.dart';
 import 'screens/home_navigation_screen.dart';
 import 'utils/app_colors.dart';
+import 'models/models.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(AprendizAdapter());
+  Hive.registerAdapter(DispositivoAdapter());
+  await Hive.openBox<Aprendiz>('aprendicesBox');
   runApp(const SenaApp());
 }
 
@@ -36,7 +44,13 @@ class SenaApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/registro': (context) => const RegistrationScreen(),
         '/inicio': (context) => const HomeScreen(),
-        '/carnet': (context) => const IdCardScreen(),
+        '/carnet': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          if (args is Aprendiz) {
+            return IdCardScreen(aprendiz: args);
+          }
+          return IdCardScreen(aprendiz: null); // Fallback si no hay argumento
+        },
         '/dispositivos': (context) => const DeviceManagementScreen(),
       },
       debugShowCheckedModeBanner: false,
