@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importamos dotenv
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/registration_screen.dart';
@@ -16,6 +17,10 @@ void main() async {
   Hive.registerAdapter(AprendizAdapter());
   Hive.registerAdapter(DispositivoAdapter());
   await Hive.openBox<Aprendiz>('aprendicesBox');
+  
+  // Inicializamos las variables de entorno desde el archivo .env
+  await dotenv.load(fileName: ".env");
+  
   runApp(const SenaApp());
 }
 
@@ -25,7 +30,7 @@ class SenaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SENA Carnets Virtuales',
+      title: 'SENA Carnet Digital', // Actualizado al nombre elegido
       theme: ThemeData(
         primarySwatch: Colors.green,
         primaryColor: AppColors.senaGreen,

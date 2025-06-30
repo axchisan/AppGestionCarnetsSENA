@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sena_gestion_carnets/utils/app_colors.dart';
+import 'package:sena_carnet_digital/utils/app_colors.dart';
 
 class CustomTextField extends StatefulWidget {
   final String label;
