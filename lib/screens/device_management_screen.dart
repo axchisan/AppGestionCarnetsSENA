@@ -369,7 +369,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                         controller: _deviceNameController,
                         decoration: InputDecoration(
                           labelText: 'Nombre del Dispositivo',
-                          hintText: 'Ej: Mi Laptop, Tablet Personal, etc.',
+                          hintText: 'Ej: Acer, Samsung, etc.',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: const BorderSide(
