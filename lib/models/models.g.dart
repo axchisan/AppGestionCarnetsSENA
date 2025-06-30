@@ -82,13 +82,14 @@ class DispositivoAdapter extends TypeAdapter<Dispositivo> {
       idIdentificacion: fields[1] as String,
       nombreDispositivo: fields[2] as String,
       fechaRegistro: fields[3] as DateTime,
+      tipoDispositivo: fields[4] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Dispositivo obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.idDispositivo)
       ..writeByte(1)
@@ -96,7 +97,9 @@ class DispositivoAdapter extends TypeAdapter<Dispositivo> {
       ..writeByte(2)
       ..write(obj.nombreDispositivo)
       ..writeByte(3)
-      ..write(obj.fechaRegistro);
+      ..write(obj.fechaRegistro)
+      ..writeByte(4)
+      ..write(obj.tipoDispositivo);
   }
 
   @override

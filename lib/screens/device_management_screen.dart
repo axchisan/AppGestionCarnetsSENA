@@ -17,11 +17,11 @@ class DeviceManagementScreen extends StatefulWidget {
 class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
   final _deviceIdController = TextEditingController();
   final _deviceNameController = TextEditingController();
-  
+  final _deviceTypeController = TextEditingController();
+
   final List<Map<String, dynamic>> _devices = [];
-  String _selectedType = 'Computador';
+  String _selectedType = 'Portátil';
   final List<String> _deviceTypes = [
-    'Computador',
     'Portátil',
     'Tablet',
     'Teléfono',
@@ -43,16 +43,24 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
 
   Future<void> _loadDevices() async {
     if (widget.aprendiz != null) {
-      final aprendiz = await _dbService.getAprendizFromLocal(widget.aprendiz!.idIdentificacion);
+      final aprendiz = await _dbService.getAprendizFromLocal(
+        widget.aprendiz!.idIdentificacion,
+      );
       if (aprendiz != null) {
         setState(() {
           _devices.clear();
-          _devices.addAll(aprendiz.dispositivos.map((d) => {
-            'name': d.nombreDispositivo,
-            'id': d.idDispositivo,
-            'icon': _getIconForType(_deviceTypes.contains(d.nombreDispositivo) ? d.nombreDispositivo : 'Otro'),
-            'type': _deviceTypes.contains(d.nombreDispositivo) ? d.nombreDispositivo : 'Otro',
-          }));
+          _devices.addAll(
+            aprendiz.dispositivos.map(
+              (d) => {
+                'name': d.nombreDispositivo,
+                'id': d.idDispositivo,
+                'type':
+                    d.tipoDispositivo ??
+                    'Otro', // Usar tipoDispositivo si existe
+                'icon': _getIconForType(d.tipoDispositivo ?? 'Otro'),
+              },
+            ),
+          );
         });
       }
     }
@@ -62,11 +70,14 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
   void dispose() {
     _deviceIdController.dispose();
     _deviceNameController.dispose();
+    _deviceTypeController.dispose();
     super.dispose();
   }
 
   void _addDevice() async {
-    if (_deviceIdController.text.isNotEmpty && _deviceNameController.text.isNotEmpty) {
+    if (_deviceIdController.text.isNotEmpty &&
+        _deviceNameController.text.isNotEmpty &&
+        _selectedType.isNotEmpty) {
       if (_devices.length >= _maxDevices) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -88,7 +99,19 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
       }
 
       if (widget.aprendiz != null) {
-        await _dbService.addDevice(widget.aprendiz!.idIdentificacion, _deviceNameController.text.trim(), _deviceIdController.text.trim());
+        final newDevice = Dispositivo(
+          idDispositivo: _deviceIdController.text.trim(),
+          idIdentificacion: widget.aprendiz!.idIdentificacion,
+          nombreDispositivo: _deviceNameController.text.trim(),
+          tipoDispositivo: _selectedType,
+          fechaRegistro: DateTime.now(),
+        );
+        await _dbService.addDevice(
+          widget.aprendiz!.idIdentificacion,
+          _deviceNameController.text.trim(),
+          _deviceIdController.text.trim(),
+          _selectedType,
+        );
         await _loadDevices(); // Recargar dispositivos después de añadir
         setState(() {
           _deviceIdController.clear();
@@ -119,7 +142,9 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Eliminar Dispositivo'),
-            content: Text('¿Estás seguro de que quieres eliminar "${_devices[index]['name']}"?'),
+            content: Text(
+              '¿Estás seguro de que quieres eliminar "${_devices[index]['name']}"?',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -128,9 +153,13 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
               TextButton(
                 onPressed: () async {
                   final deviceId = _devices[index]['id'];
-                  final aprendiz = await _dbService.getAprendizFromLocal(widget.aprendiz!.idIdentificacion);
+                  final aprendiz = await _dbService.getAprendizFromLocal(
+                    widget.aprendiz!.idIdentificacion,
+                  );
                   if (aprendiz != null) {
-                    final updatedDispositivos = aprendiz.dispositivos.where((d) => d.idDispositivo != deviceId).toList();
+                    final updatedDispositivos = aprendiz.dispositivos
+                        .where((d) => d.idDispositivo != deviceId)
+                        .toList();
                     final updatedAprendiz = Aprendiz(
                       idIdentificacion: aprendiz.idIdentificacion,
                       nombreCompleto: aprendiz.nombreCompleto,
@@ -168,9 +197,8 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
 
   IconData _getIconForType(String type) {
     switch (type) {
-      case 'Computador':
       case 'Portátil':
-        return Icons.computer;
+        return Icons.laptop;
       case 'Tablet':
         return Icons.tablet;
       case 'Teléfono':
@@ -196,9 +224,19 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.black),
-              onPressed: () => Navigator.pop(context),
+            AppBar(
+              backgroundColor: AppColors.white,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: AppColors.black),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: const SenaLogo(
+                width: 120,
+                height: 40,
+                showShadow: false,
+              ),
+              centerTitle: true,
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -286,7 +324,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                                                 ),
                                               ),
                                               Text(
-                                                device['type'],
+                                                'Tipo: ${device['type']}',
                                                 style: const TextStyle(
                                                   color: AppColors.gray,
                                                   fontSize: 12,
@@ -431,11 +469,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                         ),
                         child: const Row(
                           children: [
-                            Icon(
-                              Icons.info,
-                              color: Colors.blue,
-                              size: 20,
-                            ),
+                            Icon(Icons.info, color: Colors.blue, size: 20),
                             SizedBox(width: 12),
                             Expanded(
                               child: Text(

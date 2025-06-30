@@ -34,7 +34,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String? _fotoPerfilPath;
 
   final List<String> _programs = [
-    'ADSI - Análisis y Desarrollo de Sistemas',
+    'ADSO - Análisis y Desarrollo de Software',
     'Multimedia - Producción Multimedia',
     'Contabilidad - Contabilidad y Finanzas',
     'Mercadeo - Mercadeo y Ventas',

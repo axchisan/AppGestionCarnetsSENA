@@ -100,16 +100,18 @@ class DatabaseService {
         for (var dispositivo in aprendiz.dispositivos) {
           await ctx.query(
             '''
-            INSERT INTO dispositivos (id_dispositivo, id_identificacion, nombre_dispositivo, fecha_registro)
-            VALUES (@idDispositivo, @id, @nombre, @fecha)
+            INSERT INTO dispositivos (id_dispositivo, id_identificacion, nombre_dispositivo, tipo_dispositivo, fecha_registro)
+            VALUES (@idDispositivo, @id, @nombre, @tipo, @fecha)
             ON CONFLICT (id_identificacion, id_dispositivo) DO UPDATE SET 
               nombre_dispositivo = @nombre, 
+              tipo_dispositivo = @tipo, 
               fecha_registro = @fecha
             ''',
             substitutionValues: {
               'idDispositivo': dispositivo.idDispositivo,
               'id': dispositivo.idIdentificacion,
               'nombre': dispositivo.nombreDispositivo,
+              'tipo': dispositivo.tipoDispositivo ?? 'Otro',
               'fecha': dispositivo.fechaRegistro.toIso8601String(),
             },
           );
@@ -184,7 +186,7 @@ class DatabaseService {
       );
       await conn.open();
       final results = await conn.query(
-        'SELECT id_dispositivo, id_identificacion, nombre_dispositivo, fecha_registro FROM dispositivos WHERE id_identificacion = @id',
+        'SELECT id_dispositivo, id_identificacion, nombre_dispositivo, tipo_dispositivo, fecha_registro FROM dispositivos WHERE id_identificacion = @id',
         substitutionValues: {'id': idIdentificacion},
       );
       await conn.close();
@@ -193,7 +195,8 @@ class DatabaseService {
         idDispositivo: row[0] as String,
         idIdentificacion: row[1] as String,
         nombreDispositivo: row[2] as String,
-        fechaRegistro: row[3] is String ? DateTime.parse(row[3] as String) : (row[3] as DateTime),
+        tipoDispositivo: row[3] as String?,
+        fechaRegistro: row[4] is String ? DateTime.parse(row[4] as String) : (row[4] as DateTime),
       )).toList();
     } catch (e) {
       print('Error al cargar dispositivos de PostgreSQL: $e');
@@ -214,13 +217,14 @@ class DatabaseService {
     }
   }
 
-  Future<void> addDevice(String idIdentificacion, String deviceName, String deviceId) async {
+  Future<void> addDevice(String idIdentificacion, String deviceName, String deviceId, String deviceType) async {
     final aprendiz = await getAprendizFromLocal(idIdentificacion);
     if (aprendiz != null) {
       final newDevice = Dispositivo(
         idDispositivo: deviceId,
         idIdentificacion: idIdentificacion,
         nombreDispositivo: deviceName,
+        tipoDispositivo: deviceType,
         fechaRegistro: DateTime.now(),
       );
       final updatedDispositivos = List<Dispositivo>.from(aprendiz.dispositivos)..add(newDevice);

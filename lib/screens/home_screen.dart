@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.black),
+          icon: const Icon(Icons.logout, color: AppColors.black),
           onPressed: () {
             // Aquí podrías abrir un drawer o menú con opción de cerrar sesión
             showDialog(

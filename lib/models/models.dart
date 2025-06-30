@@ -77,12 +77,15 @@ class Dispositivo {
   final String nombreDispositivo;
   @HiveField(3)
   final DateTime fechaRegistro;
+  @HiveField(4)
+  final String? tipoDispositivo;
 
   Dispositivo({
     required this.idDispositivo,
     required this.idIdentificacion,
     required this.nombreDispositivo,
     required this.fechaRegistro,
+    this.tipoDispositivo,
   });
 
   Map<String, dynamic> toJson() => {
@@ -90,6 +93,7 @@ class Dispositivo {
     'idIdentificacion': idIdentificacion,
     'nombreDispositivo': nombreDispositivo,
     'fechaRegistro': fechaRegistro.toIso8601String(),
+    'tipoDispositivo': tipoDispositivo,
   };
 
   factory Dispositivo.fromJson(Map<String, dynamic> json) => Dispositivo(
@@ -97,5 +101,6 @@ class Dispositivo {
     idIdentificacion: json['idIdentificacion'],
     nombreDispositivo: json['nombreDispositivo'],
     fechaRegistro: DateTime.parse(json['fechaRegistro']),
+    tipoDispositivo: json['tipoDispositivo'],
   );
 }

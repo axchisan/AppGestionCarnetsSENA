@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigateToHome() async {
     // Simular tiempo de carga
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2));
     
     final box = Hive.box<Aprendiz>('aprendicesBox');
     final aprendiz = box.values.isNotEmpty ? box.values.first : null;
