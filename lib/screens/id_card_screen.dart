@@ -5,7 +5,6 @@ import '../widgets/custom_button.dart';
 import '../widgets/sena_logo.dart';
 import '../widgets/barcode_generator.dart';
 import '../models/models.dart';
-import '../services/database_service.dart';
 
 class IdCardScreen extends StatelessWidget {
   final Aprendiz? aprendiz;

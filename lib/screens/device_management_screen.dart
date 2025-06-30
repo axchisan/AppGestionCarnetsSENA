@@ -97,13 +97,6 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
       }
 
       if (widget.aprendiz != null) {
-        final newDevice = Dispositivo(
-          idDispositivo: _deviceIdController.text.trim(),
-          idIdentificacion: widget.aprendiz!.idIdentificacion,
-          nombreDispositivo: _deviceNameController.text.trim(),
-          tipoDispositivo: _selectedType,
-          fechaRegistro: DateTime.now(),
-        );
         await _dbService.addDevice(
           widget.aprendiz!.idIdentificacion,
           _deviceNameController.text.trim(),

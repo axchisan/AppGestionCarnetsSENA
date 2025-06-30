@@ -9,7 +9,6 @@ import 'screens/id_card_screen.dart';
 import 'screens/device_management_screen.dart';
 import 'utils/app_colors.dart';
 import 'models/models.dart';
-import 'services/database_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
