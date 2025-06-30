@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:crypto/crypto.dart'; // Para hashing
-import 'dart:convert'; // Para utf8.encode
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -25,14 +25,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _fichaController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _deviceController = TextEditingController();
   final _tipoSangreController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   String? _selectedProgram;
   bool _isLoading = false;
   bool _isValidatingId = false;
   bool _isIdValid = false;
-  List<String> _devices = [];
   String? _fotoPerfilPath;
 
   final List<String> _programs = [
@@ -56,7 +54,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _fichaController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _deviceController.dispose();
     _tipoSangreController.dispose();
     super.dispose();
   }
@@ -100,24 +97,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
-  void _addDevice() {
-    if (_deviceController.text.trim().isNotEmpty) {
-      setState(() {
-        _devices.add(_deviceController.text.trim());
-        _deviceController.clear();
-      });
-    }
-  }
-
-  void _removeDevice(int index) {
-    setState(() {
-      _devices.removeAt(index);
-    });
-  }
-
   String _hashPassword(String password) {
-    var bytes = utf8.encode(password); // Convertir a bytes
-    var digest = sha256.convert(bytes); // Usar SHA-256 (puedes cambiar a MD5 o bcrypt)
+    var bytes = utf8.encode(password);
+    var digest = sha256.convert(bytes);
     return digest.toString();
   }
 
@@ -161,12 +143,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       contrasena: hashedPassword,
       email: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
       fechaRegistro: DateTime.now(),
-      dispositivos: _devices.map((d) => Dispositivo(
-        idDispositivo: DateTime.now().millisecondsSinceEpoch + _devices.indexOf(d),
-        idIdentificacion: _identificationController.text.trim(),
-        nombreDispositivo: d,
-        fechaRegistro: DateTime.now(),
-      )).toList(),
+      dispositivos: [],
     );
 
     try {
@@ -243,8 +220,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingresa tu número de identificación';
                     }
-                    if (value.length < 8) {
-                      return 'El número debe tener al menos 8 dígitos';
+                    if (value.length < 5) {
+                      return 'El número debe tener al menos 5 dígitos';
                     }
                     return null;
                   },
@@ -452,98 +429,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           },
                         ),
                         const SizedBox(height: 30),
-                        Container(
-                          width: double.infinity,
-                          height: 1,
-                          color: AppColors.gray.withOpacity(0.3),
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Dispositivos Autorizados (Opcional)',
-                          style: TextStyle(
-                            color: AppColors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _deviceController,
-                                decoration: InputDecoration(
-                                  hintText: 'ID del dispositivo (ej: PC001)',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.senaGreen,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.senaGreen,
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.senaGreen,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                onPressed: _addDevice,
-                                icon: const Icon(Icons.add, color: AppColors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        if (_devices.isNotEmpty) ...[
-                          Container(
-                            constraints: const BoxConstraints(maxHeight: 200),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _devices.length,
-                              itemBuilder: (context, index) {
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.lightGray,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.devices, color: AppColors.senaGreen),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          _devices[index],
-                                          style: const TextStyle(
-                                            color: AppColors.black,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () => _removeDevice(index),
-                                        icon: const Icon(Icons.delete, color: AppColors.red),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
                         CustomButton(
                           text: 'Registrarse',
                           onPressed: _handleRegistration,

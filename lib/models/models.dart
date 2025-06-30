@@ -70,7 +70,7 @@ class Aprendiz {
 @HiveType(typeId: 1)
 class Dispositivo {
   @HiveField(0)
-  final int idDispositivo;
+  final String idDispositivo;
   @HiveField(1)
   final String idIdentificacion;
   @HiveField(2)

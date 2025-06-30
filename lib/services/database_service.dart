@@ -64,35 +64,57 @@ class DatabaseService {
           : null;
 
       print('Guardando contraseña hasheada: ${aprendiz.contrasena}');
-      await conn.query(
-        '''
-        INSERT INTO aprendices (
-          id_identificacion, nombre_completo, programa_formacion, numero_ficha, 
-          tipo_sangre, foto_perfil, contrasena, email, fecha_registro
-        ) VALUES (
-          @id, @nombre, @programa, @ficha, @tipoSangre, @foto, @contrasena, @email, @fecha
-        ) ON CONFLICT (id_identificacion) DO UPDATE SET 
-          nombre_completo = @nombre, 
-          programa_formacion = @programa, 
-          numero_ficha = @ficha, 
-          tipo_sangre = @tipoSangre, 
-          foto_perfil = @foto, 
-          contrasena = @contrasena, 
-          email = @email, 
-          fecha_registro = @fecha
-        ''',
-        substitutionValues: {
-          'id': aprendiz.idIdentificacion,
-          'nombre': aprendiz.nombreCompleto,
-          'programa': aprendiz.programaFormacion,
-          'ficha': aprendiz.numeroFicha,
-          'tipoSangre': aprendiz.tipoSangre,
-          'foto': encodedImage,
-          'contrasena': aprendiz.contrasena,
-          'email': aprendiz.email,
-          'fecha': aprendiz.fechaRegistro.toIso8601String(),
-        },
-      );
+      await conn.transaction((ctx) async {
+        await ctx.query(
+          '''
+          INSERT INTO aprendices (
+            id_identificacion, nombre_completo, programa_formacion, numero_ficha, 
+            tipo_sangre, foto_perfil, contrasena, email, fecha_registro
+          ) VALUES (
+            @id, @nombre, @programa, @ficha, @tipoSangre, @foto, @contrasena, @email, @fecha
+          ) ON CONFLICT (id_identificacion) DO UPDATE SET 
+            nombre_completo = @nombre, 
+            programa_formacion = @programa, 
+            numero_ficha = @ficha, 
+            tipo_sangre = @tipoSangre, 
+            foto_perfil = @foto, 
+            contrasena = @contrasena, 
+            email = @email, 
+            fecha_registro = @fecha
+          ''',
+          substitutionValues: {
+            'id': aprendiz.idIdentificacion,
+            'nombre': aprendiz.nombreCompleto,
+            'programa': aprendiz.programaFormacion,
+            'ficha': aprendiz.numeroFicha,
+            'tipoSangre': aprendiz.tipoSangre,
+            'foto': encodedImage,
+            'contrasena': aprendiz.contrasena,
+            'email': aprendiz.email,
+            'fecha': aprendiz.fechaRegistro.toIso8601String(),
+          },
+        );
+
+        // Sincronizar dispositivos
+        await ctx.query('DELETE FROM dispositivos WHERE id_identificacion = @id', substitutionValues: {'id': aprendiz.idIdentificacion});
+        for (var dispositivo in aprendiz.dispositivos) {
+          await ctx.query(
+            '''
+            INSERT INTO dispositivos (id_dispositivo, id_identificacion, nombre_dispositivo, fecha_registro)
+            VALUES (@idDispositivo, @id, @nombre, @fecha)
+            ON CONFLICT (id_identificacion, id_dispositivo) DO UPDATE SET 
+              nombre_dispositivo = @nombre, 
+              fecha_registro = @fecha
+            ''',
+            substitutionValues: {
+              'idDispositivo': dispositivo.idDispositivo,
+              'id': dispositivo.idIdentificacion,
+              'nombre': dispositivo.nombreDispositivo,
+              'fecha': dispositivo.fechaRegistro.toIso8601String(),
+            },
+          );
+        }
+      });
 
       await conn.close();
       print('Sincronización con PostgreSQL exitosa para ID: ${aprendiz.idIdentificacion}');
@@ -129,7 +151,7 @@ class DatabaseService {
       if (results.isNotEmpty) {
         final row = results.first;
         print('Resultado de consulta: $row');
-        return Aprendiz(
+        final aprendiz = Aprendiz(
           idIdentificacion: row[0] as String,
           nombreCompleto: row[1] as String,
           programaFormacion: row[2] as String,
@@ -139,14 +161,43 @@ class DatabaseService {
           contrasena: row[6] as String,
           email: row[7] as String?,
           fechaRegistro: row[8] is String ? DateTime.parse(row[8] as String) : (row[8] as DateTime),
-          dispositivos: [],
+          dispositivos: await _loadDevicesFromPostgres(id),
         );
+        return aprendiz;
       }
       print('No se encontró aprendiz con las credenciales proporcionadas');
       return null;
     } catch (e) {
       print('Error al obtener aprendiz de PostgreSQL: $e');
       return null;
+    }
+  }
+
+  Future<List<Dispositivo>> _loadDevicesFromPostgres(String idIdentificacion) async {
+    try {
+      final conn = PostgreSQLConnection(
+        _postgresHost,
+        _postgresPort,
+        _postgresDatabase,
+        username: _postgresUsername,
+        password: _postgresPassword,
+      );
+      await conn.open();
+      final results = await conn.query(
+        'SELECT id_dispositivo, id_identificacion, nombre_dispositivo, fecha_registro FROM dispositivos WHERE id_identificacion = @id',
+        substitutionValues: {'id': idIdentificacion},
+      );
+      await conn.close();
+
+      return results.map((row) => Dispositivo(
+        idDispositivo: row[0] as String,
+        idIdentificacion: row[1] as String,
+        nombreDispositivo: row[2] as String,
+        fechaRegistro: row[3] is String ? DateTime.parse(row[3] as String) : (row[3] as DateTime),
+      )).toList();
+    } catch (e) {
+      print('Error al cargar dispositivos de PostgreSQL: $e');
+      return [];
     }
   }
 
@@ -163,11 +214,11 @@ class DatabaseService {
     }
   }
 
-  Future<void> addDevice(String idIdentificacion, String deviceName) async {
+  Future<void> addDevice(String idIdentificacion, String deviceName, String deviceId) async {
     final aprendiz = await getAprendizFromLocal(idIdentificacion);
     if (aprendiz != null) {
       final newDevice = Dispositivo(
-        idDispositivo: DateTime.now().millisecondsSinceEpoch,
+        idDispositivo: deviceId,
         idIdentificacion: idIdentificacion,
         nombreDispositivo: deviceName,
         fechaRegistro: DateTime.now(),
@@ -186,7 +237,6 @@ class DatabaseService {
         dispositivos: updatedDispositivos,
       );
       await saveAprendiz(updatedAprendiz);
-      await _syncToPostgres(updatedAprendiz);
     }
   }
 }

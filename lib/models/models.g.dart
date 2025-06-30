@@ -78,7 +78,7 @@ class DispositivoAdapter extends TypeAdapter<Dispositivo> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Dispositivo(
-      idDispositivo: fields[0] as int,
+      idDispositivo: fields[0] as String,
       idIdentificacion: fields[1] as String,
       nombreDispositivo: fields[2] as String,
       fechaRegistro: fields[3] as DateTime,
