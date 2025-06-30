@@ -116,8 +116,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingresa tu número de identificación';
                     }
-                    if (value.length < 8) {
-                      return 'El número de identificación debe tener al menos 8 dígitos';
+                    if (value.length < 5) {
+                      return 'El número de identificación debe tener al menos 5 dígitos';
                     }
                     return null;
                   },
