@@ -19,9 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    // Simular tiempo de carga
     await Future.delayed(const Duration(seconds: 2));
-    
     final box = Hive.box<Aprendiz>('aprendicesBox');
     final aprendiz = box.values.isNotEmpty ? box.values.first : null;
 
@@ -42,7 +40,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo SENA grande con fondo blanco
             Container(
               width: 250,
               height: 250,
@@ -64,8 +61,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 40),
-            
-            // Título
             const Text(
               'Carnets Virtuales',
               style: TextStyle(
@@ -75,8 +70,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            
-            // Subtítulo
             const Text(
               'Sistema de Identificación Digital',
               style: TextStyle(
@@ -85,8 +78,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 50),
-            
-            // Indicador de carga
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
               strokeWidth: 3,

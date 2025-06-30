@@ -1,8 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:crypto/crypto.dart'; // Para hashing
-import 'dart:convert'; // Para utf8.encode
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -33,8 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String _hashPassword(String password) {
-    var bytes = utf8.encode(password); // Convertir a bytes
-    var digest = sha256.convert(bytes); // Usar SHA-256
+    var bytes = utf8.encode(password);
+    var digest = sha256.convert(bytes);
     return digest.toString();
   }
 
@@ -48,11 +47,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final id = _identificationController.text.trim();
     final hashedPassword = _hashPassword(_passwordController.text.trim());
 
-    // Intentar primero con PostgreSQL para asegurar datos actualizados
     Aprendiz? aprendiz = await _dbService.getAprendizFromPostgres(id, hashedPassword);
 
     if (aprendiz != null) {
-      await _dbService.saveAprendiz(aprendiz); // Guardar localmente
+      await _dbService.saveAprendiz(aprendiz);
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -83,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppColors.black),
-          onPressed: () => exit(0), // Cerrar la app
+          onPressed: () => exit(0),
         ),
       ),
       body: SafeArea(

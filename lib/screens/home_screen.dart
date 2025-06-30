@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../utils/app_colors.dart';
@@ -17,8 +16,8 @@ class HomeScreen extends StatelessWidget {
     final primerAprendiz = aprendiz ?? (box.values.isNotEmpty ? box.values.first : null);
 
     void _logout() async {
-      await box.clear(); // Limpiar sesión
-      Navigator.pushReplacementNamed(context, '/splash'); // Volver a SplashScreen
+      await box.clear();
+      Navigator.pushReplacementNamed(context, '/splash');
     }
 
     return Scaffold(
@@ -29,7 +28,6 @@ class HomeScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.logout, color: AppColors.black),
           onPressed: () {
-            // Aquí podrías abrir un drawer o menú con opción de cerrar sesión
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
@@ -247,9 +245,9 @@ class HomeScreen extends StatelessWidget {
                   context,
                   Icons.close,
                   'Cerrar',
-                  '', // Sin ruta
+                  '',
                   null,
-                  onTap: () => exit(0), // Cerrar la app
+                  onTap: () => exit(0),
                 ),
               ],
             ),

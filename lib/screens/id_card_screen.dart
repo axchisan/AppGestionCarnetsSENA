@@ -1,7 +1,5 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/sena_logo.dart';
@@ -104,7 +102,6 @@ class IdCardScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 24),
-
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Column(
@@ -157,7 +154,6 @@ class IdCardScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 24),
-
                           BarcodeGenerator(
                             data: aprendiz?.idIdentificacion ?? 'N/A',
                             width: 200,
@@ -178,7 +174,6 @@ class IdCardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
               CustomButton(
                 text: 'Compartir Carnet',

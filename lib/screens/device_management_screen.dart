@@ -33,7 +33,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
   ];
 
   final DatabaseService _dbService = DatabaseService();
-  static const int _maxDevices = 10; // Límite configurable
+  static const int _maxDevices = 10;
 
   @override
   void initState() {
@@ -54,9 +54,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
               (d) => {
                 'name': d.nombreDispositivo,
                 'id': d.idDispositivo,
-                'type':
-                    d.tipoDispositivo ??
-                    'Otro', // Usar tipoDispositivo si existe
+                'type': d.tipoDispositivo ?? 'Otro',
                 'icon': _getIconForType(d.tipoDispositivo ?? 'Otro'),
               },
             ),
@@ -112,7 +110,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
           _deviceIdController.text.trim(),
           _selectedType,
         );
-        await _loadDevices(); // Recargar dispositivos después de añadir
+        await _loadDevices();
         setState(() {
           _deviceIdController.clear();
           _deviceNameController.clear();
@@ -173,7 +171,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                       dispositivos: updatedDispositivos,
                     );
                     await _dbService.saveAprendiz(updatedAprendiz);
-                    await _loadDevices(); // Recargar dispositivos después de eliminar
+                    await _loadDevices();
                   }
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -248,7 +246,6 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Título
                       const Center(
                         child: Text(
                           'Mis Dispositivos',
@@ -260,8 +257,6 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                         ),
                       ),
                       const SizedBox(height: 30),
-
-                      // Lista de dispositivos
                       const Text(
                         'Dispositivos Registrados',
                         style: TextStyle(
@@ -271,7 +266,6 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
                       SizedBox(
                         height: 200,
                         child: _devices.isEmpty
@@ -346,8 +340,6 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                                 },
                               ),
                       ),
-
-                      // Sección agregar dispositivo
                       const SizedBox(height: 20),
                       const Text(
                         'Agregar Nuevo Dispositivo',
@@ -358,8 +350,6 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Formulario para agregar dispositivo
                       TextField(
                         controller: _deviceIdController,
                         decoration: InputDecoration(
@@ -382,7 +372,6 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       TextField(
                         controller: _deviceNameController,
                         decoration: InputDecoration(
@@ -405,8 +394,6 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      // Dropdown para tipo de dispositivo
                       DropdownButtonFormField<String>(
                         value: _selectedType,
                         decoration: InputDecoration(
@@ -451,15 +438,12 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-
                       CustomButton(
                         text: 'Agregar Dispositivo',
                         onPressed: _addDevice,
                         icon: Icons.add,
                       ),
                       const SizedBox(height: 16),
-
-                      // Información adicional
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(

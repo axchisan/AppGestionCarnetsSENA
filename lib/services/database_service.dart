@@ -32,20 +32,15 @@ class DatabaseService {
       await conn.close();
       return results.isNotEmpty;
     } catch (e) {
-      print('Error validating ID: $e');
       return false;
     }
   }
 
   Future<void> saveAprendiz(Aprendiz aprendiz) async {
     try {
-      print('Intentando guardar aprendiz con ID: ${aprendiz.idIdentificacion}');
       await _aprendicesBox.put(aprendiz.idIdentificacion, aprendiz);
-      print('Guardado local exitoso: ${_aprendicesBox.containsKey(aprendiz.idIdentificacion)}');
       await _syncToPostgres(aprendiz);
-    } catch (e) {
-      print('Error al guardar aprendiz: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> _syncToPostgres(Aprendiz aprendiz) async {
@@ -63,7 +58,6 @@ class DatabaseService {
           ? base64Encode(await File(aprendiz.fotoPerfilPath!).readAsBytes())
           : null;
 
-      print('Guardando contraseña hasheada: ${aprendiz.contrasena}');
       await conn.transaction((ctx) async {
         await ctx.query(
           '''
@@ -95,7 +89,6 @@ class DatabaseService {
           },
         );
 
-        // Sincronizar dispositivos
         await ctx.query('DELETE FROM dispositivos WHERE id_identificacion = @id', substitutionValues: {'id': aprendiz.idIdentificacion});
         for (var dispositivo in aprendiz.dispositivos) {
           await ctx.query(
@@ -119,10 +112,7 @@ class DatabaseService {
       });
 
       await conn.close();
-      print('Sincronización con PostgreSQL exitosa para ID: ${aprendiz.idIdentificacion}');
-    } catch (e) {
-      print('Error al sincronizar con PostgreSQL: $e');
-    }
+    } catch (e) {}
   }
 
   Future<Aprendiz?> getAprendizFromLocal(String id) async {
@@ -139,7 +129,6 @@ class DatabaseService {
         password: _postgresPassword,
       );
       await conn.open();
-      print('Consultando aprendiz con ID: $id y contraseña hasheada: $password');
       final results = await conn.query(
         '''
         SELECT id_identificacion, nombre_completo, programa_formacion, numero_ficha, 
@@ -152,7 +141,6 @@ class DatabaseService {
 
       if (results.isNotEmpty) {
         final row = results.first;
-        print('Resultado de consulta: $row');
         final aprendiz = Aprendiz(
           idIdentificacion: row[0] as String,
           nombreCompleto: row[1] as String,
@@ -167,10 +155,8 @@ class DatabaseService {
         );
         return aprendiz;
       }
-      print('No se encontró aprendiz con las credenciales proporcionadas');
       return null;
     } catch (e) {
-      print('Error al obtener aprendiz de PostgreSQL: $e');
       return null;
     }
   }
@@ -199,7 +185,6 @@ class DatabaseService {
         fechaRegistro: row[4] is String ? DateTime.parse(row[4] as String) : (row[4] as DateTime),
       )).toList();
     } catch (e) {
-      print('Error al cargar dispositivos de PostgreSQL: $e');
       return [];
     }
   }
@@ -212,7 +197,6 @@ class DatabaseService {
       await file.writeAsBytes(bytes);
       return file.path;
     } catch (e) {
-      print('Error al guardar imagen localmente: $e');
       return null;
     }
   }

@@ -38,7 +38,7 @@ class SenaApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: const SplashScreen(), // Iniciar en SplashScreen
+      home: const SplashScreen(),
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),

@@ -104,9 +104,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   void _handleRegistration() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     if (!_isIdValid) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -166,8 +164,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al registrar: $e'),
+          const SnackBar(
+            content: Text('Error al registrar'),
             backgroundColor: AppColors.red,
           ),
         );
