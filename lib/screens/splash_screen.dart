@@ -62,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 40),
             const Text(
-              'Carnets Virtuales',
+              'Carnet Digital',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

@@ -1,0 +1,2 @@
+-keep class io.flutter.plugins.dotenv.** { *; }
+-keep class com.github.simonwaldherr.postgres.** { *; } # Ajusta si el paquete usa otro nombre

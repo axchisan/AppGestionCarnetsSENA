@@ -9,12 +9,12 @@ import '../models/models.dart';
 class DatabaseService {
   static const String _hiveBoxName = 'aprendicesBox';
 
-  // Obtenemos las variables de entorno con manejo de nulos
-  static String get _postgresHost => dotenv.env['POSTGRES_HOST'] ?? 'default_host';
-  static int get _postgresPort => int.tryParse(dotenv.env['POSTGRES_PORT'] ?? '5432') ?? 5432;
-  static String get _postgresDatabase => dotenv.env['POSTGRES_DATABASE'] ?? 'default_db';
-  static String get _postgresUsername => dotenv.env['POSTGRES_USERNAME'] ?? 'default_user';
-  static String get _postgresPassword => dotenv.env['POSTGRES_PASSWORD'] ?? 'default_password';
+  // Credenciales hardcoded
+  static const String _postgresHost = 'hopper.proxy.rlwy.net';
+  static const int _postgresPort = 47980;
+  static const String _postgresDatabase = 'railway';
+  static const String _postgresUsername = 'postgres';
+  static const String _postgresPassword = 'QpxOPUaKNhfIufGenMKFHdEquICkGhEc';
 
   Box<Aprendiz> get _aprendicesBox => Hive.box<Aprendiz>(_hiveBoxName);
 
