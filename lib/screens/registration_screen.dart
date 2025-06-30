@@ -67,11 +67,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
+  Future<bool> _checkInternetConnection() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
+
   void _validateIdentification() async {
     if (_identificationController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Ingresa un número de identificación'),
+          backgroundColor: AppColors.red,
+        ),
+      );
+      return;
+    }
+
+    if (!await _checkInternetConnection()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay conexión a Internet. Verifica tu red.'),
           backgroundColor: AppColors.red,
         ),
       );
@@ -126,6 +145,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       return;
     }
 
+    if (!await _checkInternetConnection()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay conexión a Internet. Verifica tu red.'),
+          backgroundColor: AppColors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -165,7 +194,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error al registrar'),
+            content: Text('Error al registrar. Verifica tu conexión o intenta de nuevo.'),
             backgroundColor: AppColors.red,
           ),
         );

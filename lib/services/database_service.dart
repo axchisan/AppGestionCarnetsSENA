@@ -9,12 +9,12 @@ import '../models/models.dart';
 class DatabaseService {
   static const String _hiveBoxName = 'aprendicesBox';
 
-  // Credenciales hardcoded
-  static const String _postgresHost = 'hopper.proxy.rlwy.net';
-  static const int _postgresPort = 47980;
-  static const String _postgresDatabase = 'railway';
-  static const String _postgresUsername = 'postgres';
-  static const String _postgresPassword = 'QpxOPUaKNhfIufGenMKFHdEquICkGhEc';
+  // Obtenemos las variables de entorno con manejo de nulos
+  static String get _postgresHost => dotenv.env['POSTGRES_HOST'] ?? 'default_host';
+  static int get _postgresPort => int.tryParse(dotenv.env['POSTGRES_PORT'] ?? '5432') ?? 5432;
+  static String get _postgresDatabase => dotenv.env['POSTGRES_DATABASE'] ?? 'default_db';
+  static String get _postgresUsername => dotenv.env['POSTGRES_USERNAME'] ?? 'default_user';
+  static String get _postgresPassword => dotenv.env['POSTGRES_PASSWORD'] ?? 'default_password';
 
   Box<Aprendiz> get _aprendicesBox => Hive.box<Aprendiz>(_hiveBoxName);
 
@@ -119,7 +119,11 @@ class DatabaseService {
   }
 
   Future<Aprendiz?> getAprendizFromLocal(String id) async {
-    return _aprendicesBox.get(id);
+    try {
+      return _aprendicesBox.get(id);
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<Aprendiz?> getAprendizFromPostgres(String id, String password) async {
@@ -205,29 +209,31 @@ class DatabaseService {
   }
 
   Future<void> addDevice(String idIdentificacion, String deviceName, String deviceId, String deviceType) async {
-    final aprendiz = await getAprendizFromLocal(idIdentificacion);
-    if (aprendiz != null) {
-      final newDevice = Dispositivo(
-        idDispositivo: deviceId,
-        idIdentificacion: idIdentificacion,
-        nombreDispositivo: deviceName,
-        tipoDispositivo: deviceType,
-        fechaRegistro: DateTime.now(),
-      );
-      final updatedDispositivos = List<Dispositivo>.from(aprendiz.dispositivos)..add(newDevice);
-      final updatedAprendiz = Aprendiz(
-        idIdentificacion: aprendiz.idIdentificacion,
-        nombreCompleto: aprendiz.nombreCompleto,
-        programaFormacion: aprendiz.programaFormacion,
-        numeroFicha: aprendiz.numeroFicha,
-        tipoSangre: aprendiz.tipoSangre,
-        fotoPerfilPath: aprendiz.fotoPerfilPath,
-        contrasena: aprendiz.contrasena,
-        email: aprendiz.email,
-        fechaRegistro: aprendiz.fechaRegistro,
-        dispositivos: updatedDispositivos,
-      );
-      await saveAprendiz(updatedAprendiz);
-    }
+    try {
+      final aprendiz = await getAprendizFromLocal(idIdentificacion);
+      if (aprendiz != null) {
+        final newDevice = Dispositivo(
+          idDispositivo: deviceId,
+          idIdentificacion: idIdentificacion,
+          nombreDispositivo: deviceName,
+          tipoDispositivo: deviceType,
+          fechaRegistro: DateTime.now(),
+        );
+        final updatedDispositivos = List<Dispositivo>.from(aprendiz.dispositivos)..add(newDevice);
+        final updatedAprendiz = Aprendiz(
+          idIdentificacion: aprendiz.idIdentificacion,
+          nombreCompleto: aprendiz.nombreCompleto,
+          programaFormacion: aprendiz.programaFormacion,
+          numeroFicha: aprendiz.numeroFicha,
+          tipoSangre: aprendiz.tipoSangre,
+          fotoPerfilPath: aprendiz.fotoPerfilPath,
+          contrasena: aprendiz.contrasena,
+          email: aprendiz.email,
+          fechaRegistro: aprendiz.fechaRegistro,
+          dispositivos: updatedDispositivos,
+        );
+        await saveAprendiz(updatedAprendiz);
+      }
+    } catch (e) {}
   }
 }
