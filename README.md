@@ -65,3 +65,10 @@ Agradecemos al equipo del Centro de Formación SENA por su apoyo y a la comunida
 
 ## 📸 Capturas de Pantalla
 
+![Screenshot_1751317031](https://github.com/user-attachments/assets/e357dc63-1e02-401c-8d48-c2a4a69e4893)
+![Screenshot_1751316978](https://github.com/user-attachments/assets/87d61da4-6791-4196-84e7-c59fbfc8feb6)
+![Screenshot_1751316972](https://github.com/user-attachments/assets/f3599dc1-f5a1-46a0-ac08-8f28243703f5)
+![Screenshot_1751316944](https://github.com/user-attachments/assets/5fedaeba-d439-4d7b-932b-5c624b397660)
+![Screenshot_1751316939](https://github.com/user-attachments/assets/78955f06-a811-4a90-9d1d-39e9e6846247)
+![Screenshot_1751316904](https://github.com/user-attachments/assets/10a2b93b-a194-4430-bdc9-44e4c1234d0f)
+![Screenshot_1751316892](https://github.com/user-attachments/assets/f1c98338-7a80-46b7-88cf-6c627ec1d952)
