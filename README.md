@@ -1,7 +1,7 @@
 
 # 🎉 App de Carnets Virtuales SENA
 
-¡Bienvenido a la aplicación móvil de carnets virtuales desarrollada para los aprendices del Centro de Formación SENA! Esta app, construida con **Flutter**, está diseñada para facilitar el registro, gestión y validación de carnets virtuales de los aprendices, integrándose seamlessly con un sistema administrativo existente y una base de datos PostgreSQL. El objetivo es proporcionar una solución segura, práctica y mayormente funcional sin conexión, mejorando la experiencia de los aprendices y el control de acceso en el centro.
+¡Bienvenido a la aplicación móvil de carnets virtuales desarrollada para los aprendices del Centro de Formación SENA! Esta app, construida con **Flutter**, está diseñada para facilitar el registro, gestión y validación de carnets virtuales de los aprendices, integrándose con un sistema administrativo existente y una base de datos PostgreSQL. El objetivo es proporcionar una solución segura, práctica y mayormente funcional sin conexión, mejorando la experiencia de los aprendices y el control de acceso en el centro.
 
 ## 🚀 ¿Qué es esta app?
 
@@ -51,7 +51,7 @@ Esta aplicación fue desarrollada y creada por **Duvan Yair Arciniegas Gerena (A
 ## 🤝 Contribuciones
 
 Este proyecto está abierto a mejoras y colaboraciones. Si deseas contribuir:
-- Revisa las [issues](https://github.com/tu-usuario/tu-repo/issues) para tareas pendientes.
+- Revisa las [issues](https://github.com/axchisan/AppGestionCarnetsSENA/issues) para tareas pendientes.
 - Envía un pull request con tus cambios.
 - Sigue las guías de estilo y documenta tus aportes.
 
